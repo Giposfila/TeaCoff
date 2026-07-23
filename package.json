@@ -1,0 +1,10 @@
+{
+  "name": "teacoff-site",
+  "version": "1.0.0",
+  "description": "Сайт чайной лавки «Чайкофф» — статический шаблон для локального хостинга",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 8080 --bind 127.0.0.1",
+    "start:node": "npx serve -l 8080 ."
+  }
+}

@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Чайкофф — чай, кофе и сладости в Красноярске</title>
+<script src="./ds-base.js"></script>
+<style>
+:root {
+  --leading: 28px;
+  --half: 14px;
+  --edge: clamp(20px, 5vw, 72px);
+  --measure: 58ch;
+
+  /* светлая тёплая палитра поверх токенов дизайн-системы */
+  --color-bg: #fdfaf3;
+  --color-surface: #f6eedd;
+  --color-text: #3a332a;
+  --color-divider: color-mix(in srgb, #8a6a3a 22%, transparent);
+  --tint-soft: #f9f1df;
+  --tint-card: #fbf5e8;
+}
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; text-wrap: pretty; min-height: 100vh;
+  background: var(--color-bg) linear-gradient(180deg, #faf1dd 0%, var(--color-bg) 560px) no-repeat; }
+
+/* фоновый слой под видеоэффект (наливание кофе по скроллу):
+   фиксированный, на весь экран, позади всего контента.
+   Позже сюда кладётся <video muted playsinline preload="auto"> или <canvas>,
+   а currentTime привязывается к проценту прокрутки страницы. */
+.bg-video { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.bg-video video, .bg-video canvas { width: 100%; height: 100%; object-fit: cover;
+  /* приглушаем будущее видео, чтобы текст поверх оставался читаемым */
+  opacity: 0.18; }
+a { color: var(--color-accent-700); }
+a:hover { color: var(--color-accent); }
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 var(--edge); }
+.nav { padding-inline: max(var(--edge), calc((100% - 1200px) / 2 + var(--edge)));
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, #fdfaf3 88%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.nav a { white-space: nowrap; }
+
+/* мягкие фотографии: без сепии, светлая рамка, скруглённые углы */
+.plate { filter: none; overflow: hidden; border-radius: 12px;
+  border: 6px solid #fff; outline: 1px solid var(--color-divider);
+  box-shadow: var(--shadow-md); }
+
+/* заливной главный акцент вместо контурного */
+.btn-primary { background: var(--color-accent); color: #fff; }
+.btn-primary:hover { background: var(--color-accent-600); color: #fff; }
+.btn-primary:active { background: var(--color-accent-700); color: #fff; }
+@media (max-width: 640px) { .nav a:not(.btn) { display: none; } }
+
+.rule { height: 1px; border: 0; margin: 0; background: var(--color-divider); }
+
+.kicker {
+  display: block; font-size: 13px; line-height: var(--half);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--color-accent-700);
+  font-feature-settings: "tnum" 1;
+  margin: 0 0 calc(var(--leading) - var(--half));
+}
+
+/* — hero — */
+.hero { padding: calc(4 * var(--leading)) 0 calc(3 * var(--leading)); }
+.display {
+  font-family: var(--font-heading); font-weight: 400;
+  font-size: clamp(46px, 6.6vw, 92px);
+  line-height: clamp(49.5px, 7.13vw, 99.5px);
+  letter-spacing: -0.01em; margin: 0;
+  margin-left: -0.042em;
+  text-box: trim-both cap alphabetic;
+}
+.display .line { display: block; }
+.hero .sub { font-size: 17px; line-height: var(--leading); max-width: var(--measure);
+  margin: calc(1.75 * var(--leading) - 1cap) 0 0;
+  text-box: trim-both cap alphabetic; }
+.hero .row { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--leading); }
+
+/* — stat row: ровно один залитый золотой момент — рейтинг — */
+.stats { padding: calc(2 * var(--leading)) clamp(20px, 4vw, 56px);
+  margin: calc(1.25 * var(--leading)) 0;
+  background: var(--tint-soft); border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--color-divider) 60%, transparent); }
+.stats .grid { display: grid; grid-template-columns: repeat(4, auto); justify-content: space-between; gap: calc(1.5 * var(--leading)) var(--leading); }
+.stat-num { font-family: var(--font-heading); font-weight: 400;
+  font-size: clamp(36px, 3.6vw, 52px); line-height: calc(2 * var(--leading));
+  font-feature-settings: "tnum" 1; color: var(--color-text);
+  margin: 0; margin-left: -0.042em;
+  text-box: trim-both cap alphabetic; }
+.stat-num.gilt { color: var(--color-accent); }
+.stat-label { font-size: 13px; line-height: var(--half); letter-spacing: 0.08em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+  margin: var(--half) 0 0; }
+
+/* — о заведении — */
+.about { padding: calc(3 * var(--leading)) 0; }
+.about h2 { font-family: var(--font-heading); font-weight: 400;
+  font-size: 34px; line-height: calc(1.5 * var(--leading)); letter-spacing: -0.008em;
+  margin: 0; text-box: trim-both cap alphabetic; }
+.about p { font-size: 15.5px; line-height: var(--leading); max-width: var(--measure);
+  color: color-mix(in srgb, var(--color-text) 78%, transparent);
+  margin: calc(var(--leading) - 1cap) 0 0;
+  text-align: justify; hyphens: auto; hyphenate-limit-chars: 6 3 3;
+  text-box: trim-both cap alphabetic; }
+
+/* — ассортимент: три колонки, разделённые волосяными линиями — */
+.features { padding: calc(3 * var(--leading)) 0 calc(2.5 * var(--leading)); }
+.cols { position: relative; display: grid; grid-template-columns: repeat(3, 1fr);
+  --col-gap: calc(2 * var(--leading));
+  gap: calc(1.5 * var(--leading)) var(--col-gap);
+  margin-top: calc(var(--leading) - var(--half)); }
+.cols::before, .cols::after { content: ""; position: absolute; top: 0; bottom: 0; width: 1px;
+  background: var(--color-divider); }
+.cols::before { left: calc((100% - 2 * var(--col-gap)) / 3 + var(--col-gap) / 2 - 0.5px); }
+.cols::after { left: calc(2 * (100% - 2 * var(--col-gap)) / 3 + 1.5 * var(--col-gap) - 0.5px); }
+.col h2 { font-family: var(--font-heading); font-weight: 400;
+  font-size: 26px; line-height: var(--leading); letter-spacing: -0.005em;
+  margin: 0; text-box: trim-both cap alphabetic; }
+.col p { font-size: 15.5px; line-height: var(--leading); margin: calc(var(--leading) - 1cap) 0 0;
+  color: color-mix(in srgb, var(--color-text) 78%, transparent);
+  text-align: justify; hyphens: auto; hyphenate-limit-chars: 6 3 3;
+  text-box: trim-both cap alphabetic; }
+.col figure { margin: 0 0 var(--leading); }
+.col image-slot { width: 100%; aspect-ratio: 800 / 550; }
+
+/* — товары и цены — */
+.prices { padding: calc(3 * var(--leading)) 0; }
+.prices .grid3 { display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: calc(1.5 * var(--leading)) calc(2 * var(--leading));
+  margin-top: calc(var(--leading) - var(--half)); }
+.pricelist h3 { font-family: var(--font-heading); font-weight: 400;
+  font-size: 26px; line-height: var(--leading); letter-spacing: -0.005em;
+  margin: 0 0 var(--half); padding-bottom: var(--half);
+  border-bottom: 1px solid var(--color-divider); }
+.pricelist h3 .unit { font-family: var(--font-body); font-size: 13px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent); margin-left: var(--space-2); }
+.pricelist ul { list-style: none; margin: 0; padding: 0; }
+.price-row { display: flex; align-items: baseline; gap: 10px;
+  font-size: 15.5px; line-height: var(--leading); padding: calc(var(--half) / 2) 0; }
+.price-row .name { min-width: 0; }
+.price-row .name em { display: block; font-style: normal; font-size: 13px; line-height: 18px;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent); }
+.price-row .dots { flex: 1; border-bottom: 1px dotted color-mix(in srgb, var(--color-text) 40%, transparent);
+  transform: translateY(-4px); min-width: 24px; }
+.price-row .cost { white-space: nowrap; font-feature-settings: "tnum" 1; }
+.price-row.hit .cost { color: var(--color-accent-700); }
+.price-row .tag { margin-left: var(--space-2); vertical-align: 2px; }
+.prices .foot { font-size: 13px; line-height: var(--leading);
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+  margin: var(--leading) 0 0; }
+
+/* — галерея: пластины, как вклейки в книге — */
+.gallery { padding: calc(3 * var(--leading)) 0; }
+.gallery .grid { display: grid; grid-template-columns: 2fr 1fr 1fr;
+  gap: var(--leading); margin-top: calc(var(--leading) - var(--half)); }
+.gallery figure { margin: 0; }
+.gallery figure.wide { grid-row: span 2; }
+.gallery image-slot { width: 100%; height: 100%; aspect-ratio: 1 / 1; }
+.gallery figure.wide image-slot { aspect-ratio: auto; min-height: 100%; }
+
+/* — отзывы — */
+.reviews { padding: calc(3 * var(--leading)) 0; }
+.reviews .grid { display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: var(--leading); margin-top: calc(var(--leading) - var(--half)); }
+.review { border: 1px solid transparent; border-radius: 14px;
+  background: var(--tint-card); box-shadow: var(--shadow-sm);
+  padding: var(--leading); margin: 0; }
+.review blockquote { font-family: var(--font-heading); font-weight: 400;
+  font-size: 20px; line-height: var(--leading); letter-spacing: -0.005em;
+  margin: 0; text-box: trim-both cap alphabetic; }
+.review figcaption { font-size: 13px; line-height: 18px;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+  margin: var(--leading) 0 0; }
+.reviews .badge { font-size: 15.5px; line-height: var(--leading);
+  margin: var(--leading) 0 0;
+  color: color-mix(in srgb, var(--color-text) 78%, transparent); }
+.reviews .badge b { font-weight: 600; font-feature-settings: "tnum" 1; color: var(--color-text); }
+
+/* — контакты — */
+.contacts { padding: calc(3 * var(--leading)) 0; }
+.contacts .grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--leading) clamp(24px, 5vw, 96px); align-items: start;
+  margin-top: calc(var(--leading) - var(--half)); }
+.contacts dl { margin: 0; font-size: 15.5px; line-height: var(--leading); }
+.contacts dt { font-size: 13px; line-height: var(--half); letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+  margin: var(--leading) 0 calc(var(--half) / 2); }
+.contacts dt:first-child { margin-top: 0; }
+.contacts dd { margin: 0; }
+.contacts .map { margin: 0; }
+.contacts .map iframe { display: block; width: 100%; height: 420px; border: 0; }
+
+/* — подвал — */
+footer { padding: calc(2 * var(--leading)) 0; font-size: 13px; line-height: var(--leading);
+  color: color-mix(in srgb, var(--color-text) 70%, transparent); }
+
+/* — responsive — */
+@media (max-width: 1108px) {
+  .cols { grid-template-columns: 1fr; }
+  .cols::before, .cols::after { content: none; }
+  .col { max-width: 62ch; }
+  .prices .grid3 { grid-template-columns: 1fr; max-width: 62ch; }
+  .reviews .grid { grid-template-columns: 1fr; max-width: 62ch; }
+}
+@media (max-width: 900px) {
+  .gallery .grid { grid-template-columns: 1fr 1fr; }
+  .gallery figure.wide { grid-column: 1 / -1; grid-row: auto; }
+  .gallery figure.wide image-slot { aspect-ratio: 3 / 2; min-height: 0; }
+  .contacts .grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .hero { padding-top: calc(2.5 * var(--leading)); }
+  .stats .grid { grid-template-columns: repeat(2, 1fr); justify-content: start; }
+}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <span class="nav-brand">Чайкофф</span>
+  <a href="#about">О нас</a>
+  <a href="#assort">Ассортимент</a>
+  <a href="#prices">Цены</a>
+  <a href="#contacts">Контакты</a>
+  <a class="btn btn-primary" href="tel:+79535888002">+7 953 588-80-02</a>
+</nav>
+<!-- задний фон: сюда позже <video muted playsinline preload="auto" src="..."></video>
+     со scroll-driven эффектом наливания кофе -->
+<div class="bg-video" aria-hidden="true"></div>
+<div class="wrap">
+
+  <section class="hero">
+    <h1 class="display"><span class="line">Чай, кофе и сладости.</span> <span class="line">По-домашнему.</span></h1>
+    <p class="sub">«Чайкофф» — маленькая чайная лавка в микрорайоне Северный: развесной чай, свежесваренный кофе с собой и сладости к нему. Красноярск, ул. Шумяцкого, 2А. Открыто ежедневно до 20:00.</p>
+    <div class="row">
+      <a class="btn btn-primary" href="#prices">Смотреть цены</a>
+      <a class="btn btn-ghost" href="#contacts">Как нас найти</a>
+    </div>
+  </section>
+
+  <section class="stats" aria-label="Чайкофф в цифрах">
+    <div class="grid">
+      <div><p class="stat-num gilt">4,3</p><p class="stat-label">Рейтинг на Яндекс Картах</p></div>
+      <div><p class="stat-num">3</p><p class="stat-label">Витрины: чай, кофе, сладости</p></div>
+      <div><p class="stat-num">20:00</p><p class="stat-label">Открыты ежедневно до</p></div>
+      <div><p class="stat-num">2А</p><p class="stat-label">Шумяцкого, мкр. Северный</p></div>
+    </div>
+  </section>
+
+  <section class="about" id="about">
+    <span class="kicker">О заведении</span>
+    <h2>Лавка, а не сетевая кофейня</h2>
+    <p>Мы небольшая домашняя лавка в Северном: чай продаём на развес — от привычного чёрного с чабрецом до улунов и травяных сборов, кофе варим с собой, а к нему держим витрину сладостей. Здесь помнят постоянных гостей и помогут собрать подарочный набор. Зайдите по дороге — уйдёте с тёплым стаканом и свёртком чая.</p>
+  </section>
+
+  <hr class="rule" />
+
+  <section class="features" id="assort">
+    <span class="kicker">Ассортимент</span>
+    <div class="cols">
+      <div class="col">
+        <figure class="plate"><image-slot id="assort-tea" shape="rect" role="img" aria-label="Чайная витрина" src="Images/tea.jpg" placeholder="Фото: чайная витрина, банки с чаем"></image-slot></figure>
+        <h2>Чай на развес</h2>
+        <p>Чёрный, зелёный, улуны, пуэры и травяные сборы — взвесим от 100 граммов, дадим понюхать и подскажем, как заваривать. Для подарка соберём набор в банке или крафтовом пакете.</p>
+      </div>
+      <div class="col">
+        <figure class="plate"><image-slot id="assort-coffee" shape="rect" role="img" aria-label="Кофе с собой" src="Images/coffee.jpg" placeholder="Фото: кофемашина, стакан кофе"></image-slot></figure>
+        <h2>Кофе с собой</h2>
+        <p>Классика от эспрессо до рафа на свежем зерне. Стакан по дороге на работу или прогулку по Северному — быстро, без очереди и по-соседски.</p>
+      </div>
+      <div class="col">
+        <figure class="plate"><image-slot id="assort-sweets" shape="rect" role="img" aria-label="Витрина со сладостями" placeholder="Фото: витрина со сладостями"></image-slot></figure>
+        <h2>Сладости</h2>
+        <p>Конфеты, пастила, восточные сладости и печенье к чаю. Что-то к вечернему чаепитию или в дополнение к подарочному набору — витрина обновляется.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <section class="prices" id="prices">
+    <span class="kicker">Товары и цены</span>
+    <div class="grid3">
+      <div class="pricelist">
+        <h3>Чай <span class="unit">за 100 г</span></h3>
+        <ul>
+          <li class="price-row hit"><span class="name">Чёрный с чабрецом<span class="tag tag-accent">хит</span></span><span class="dots"></span><span class="cost">180 ₽</span></li>
+          <li class="price-row"><span class="name">Зелёный с жасмином</span><span class="dots"></span><span class="cost">200 ₽</span></li>
+          <li class="price-row"><span class="name">Улун молочный</span><span class="dots"></span><span class="cost">320 ₽</span></li>
+          <li class="price-row"><span class="name">Пуэр<em>Шу, прессованный</em></span><span class="dots"></span><span class="cost">350 ₽</span></li>
+          <li class="price-row"><span class="name">Травяной сбор<em>Таёжный</em></span><span class="dots"></span><span class="cost">220 ₽</span></li>
+        </ul>
+      </div>
+      <div class="pricelist">
+        <h3>Кофе с собой</h3>
+        <ul>
+          <li class="price-row"><span class="name">Эспрессо</span><span class="dots"></span><span class="cost">120 ₽</span></li>
+          <li class="price-row"><span class="name">Американо</span><span class="dots"></span><span class="cost">150 ₽</span></li>
+          <li class="price-row hit"><span class="name">Капучино<span class="tag tag-accent">хит</span></span><span class="dots"></span><span class="cost">190 ₽</span></li>
+          <li class="price-row"><span class="name">Латте</span><span class="dots"></span><span class="cost">210 ₽</span></li>
+          <li class="price-row"><span class="name">Раф<em>Классический или ягодный</em></span><span class="dots"></span><span class="cost">240 ₽</span></li>
+        </ul>
+      </div>
+      <div class="pricelist">
+        <h3>Сладости</h3>
+        <ul>
+          <li class="price-row"><span class="name">Пастила<em>за 100 г</em></span><span class="dots"></span><span class="cost">160 ₽</span></li>
+          <li class="price-row"><span class="name">Рахат-лукум<em>за 100 г</em></span><span class="dots"></span><span class="cost">140 ₽</span></li>
+          <li class="price-row"><span class="name">Конфеты ручной работы<em>за штуку</em></span><span class="dots"></span><span class="cost">90 ₽</span></li>
+          <li class="price-row"><span class="name">Печенье к чаю<em>за 100 г</em></span><span class="dots"></span><span class="cost">120 ₽</span></li>
+        </ul>
+      </div>
+    </div>
+    <p class="foot">Цены указаны как пример — перед публикацией замените их на актуальные.</p>
+  </section>
+
+  <hr class="rule" />
+
+  <section class="gallery" id="gallery">
+    <span class="kicker">Галерея</span>
+    <div class="grid">
+      <figure class="plate wide"><image-slot id="gal-1" shape="rect" role="img" aria-label="Интерьер лавки" src="Images/tea.jpg" placeholder="Фото 1: интерьер или вход, широкий кадр"></image-slot></figure>
+      <figure class="plate"><image-slot id="gal-2" shape="rect" role="img" aria-label="Чайные банки" placeholder="Фото 2: чайные банки"></image-slot></figure>
+      <figure class="plate"><image-slot id="gal-3" shape="rect" role="img" aria-label="Кофе" src="Images/coffee.jpg" placeholder="Фото 3: кофе"></image-slot></figure>
+      <figure class="plate"><image-slot id="gal-4" shape="rect" role="img" aria-label="Сладости" placeholder="Фото 4: сладости"></image-slot></figure>
+      <figure class="plate"><image-slot id="gal-5" shape="rect" role="img" aria-label="Подарочный набор" placeholder="Фото 5: подарочный набор"></image-slot></figure>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <section class="reviews" id="reviews">
+    <span class="kicker">Отзывы</span>
+    <div class="grid">
+      <figure class="review">
+        <blockquote>«Уютная лавочка, чай всегда свежий. Взяла таёжный сбор — весь дом пахнет».</blockquote>
+        <figcaption>Пример отзыва — замените на реальный с Яндекс Карт</figcaption>
+      </figure>
+      <figure class="review">
+        <blockquote>«Кофе на уровне кофеен в центре, а идти две минуты от дома. Раф отличный».</blockquote>
+        <figcaption>Пример отзыва — замените на реальный с Яндекс Карт</figcaption>
+      </figure>
+      <figure class="review">
+        <blockquote>«Собрали подарочный набор для коллеги — красиво, недорого, помогли с выбором».</blockquote>
+        <figcaption>Пример отзыва — замените на реальный с 2ГИС</figcaption>
+      </figure>
+    </div>
+    <p class="badge"><b>4,3</b> — средняя оценка на Яндекс Картах. Проверьте актуальность перед публикацией.</p>
+  </section>
+
+  <hr class="rule" />
+
+  <section class="contacts" id="contacts">
+    <span class="kicker">Контакты</span>
+    <div class="grid">
+      <dl>
+        <dt>Адрес</dt>
+        <dd>Красноярск, мкр. Северный, ул. Шумяцкого, 2А</dd>
+        <dt>Режим работы</dt>
+        <dd>Ежедневно до 20:00 — уточните точный график у заведения</dd>
+        <dt>Телефон</dt>
+        <dd><a href="tel:+79535888002">+7 953 588-80-02</a></dd>
+        <dt>Мессенджеры и соцсети</dt>
+        <dd><a href="https://wa.me/79535888002" rel="noopener">WhatsApp</a> · <a href="https://vk.com/club211377670" rel="noopener">ВКонтакте</a></dd>
+      </dl>
+      <figure class="map plate">
+        <iframe src="https://yandex.ru/map-widget/v1/?ll=92.938163%2C56.065765&amp;z=17&amp;pt=92.938163,56.065765,pm2orgm" title="Чайкофф на карте" loading="lazy" allowfullscreen></iframe>
+      </figure>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <footer>«Чайкофф» · Красноярск, ул. Шумяцкого, 2А · © 2026</footer>
+</div>
+<script src="image-slot.js"></script>
+</body>
+</html>
