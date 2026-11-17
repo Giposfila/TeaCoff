@@ -1,497 +1,94 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>чайKOFF — магазин чая, кофе и сладостей в Красноярске</title>
-<script src="./ds-base.js"></script>
-<style>
-:root {
-  --leading: 28px;
-  --half: 14px;
-  --edge: clamp(20px, 5vw, 72px);
-  --measure: 58ch;
-
-  /* светлая тёплая палитра поверх токенов дизайн-системы */
-  --color-bg: #fdfaf3;
-  --color-surface: #f6eedd;
-  --color-text: #3a332a;
-  --color-divider: color-mix(in srgb, #8a6a3a 22%, transparent);
-  --tint-soft: #f9f1df;
-  --tint-card: #fbf5e8;
-}
-html { scroll-behavior: smooth; }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-body { margin: 0; text-wrap: pretty; min-height: 100vh;
-  background: var(--color-bg) linear-gradient(180deg, #faf1dd 0%, var(--color-bg) 560px) no-repeat; }
-
-/* фоновый слой под видеоэффект (наливание кофе по скроллу):
-   фиксированный, на весь экран, позади всего контента.
-   Позже сюда кладётся <video muted playsinline preload="auto"> или <canvas>,
-   а currentTime привязывается к проценту прокрутки страницы. */
-.bg-video { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.bg-video video, .bg-video canvas { width: 100%; height: 100%; object-fit: cover;
-  /* приглушаем будущее видео, чтобы текст поверх оставался читаемым */
-  opacity: 0.18; }
-
-/* фоновая svg-графика: банки кофе и чая, зёрна, чашка — контурная «гравюра»
-   в тон акцента; лежит позади контента, поверх будущего видео-слоя */
-.bg-decor { position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  color: #9a7434; overflow: hidden; }
-.bg-decor svg { position: absolute; display: block; }
-.decor-shelf { top: clamp(70px, 9vh, 140px); right: 2vw;
-  width: clamp(280px, 26vw, 460px); opacity: 0.15; }
-.decor-jar { left: -70px; top: 46%; width: 230px; opacity: 0.11; }
-.decor-cup { right: 1.5vw; bottom: 4vh; width: clamp(180px, 16vw, 280px); opacity: 0.13; }
-@media (max-width: 1108px) { .bg-decor { display: none; } }
-a { color: var(--color-accent-700); }
-a:hover { color: var(--color-accent); }
-.wrap { max-width: 1200px; margin: 0 auto; padding: 0 var(--edge); }
-.nav { padding-inline: max(var(--edge), calc((100% - 1200px) / 2 + var(--edge)));
-  position: sticky; top: 0; z-index: 20;
-  background: color-mix(in srgb, #fdfaf3 88%, transparent);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-.nav a { white-space: nowrap; }
-.nav-brand { display: flex; align-items: center; }
-.nav-brand svg { height: 34px; width: auto; display: block; }
-
-/* мягкие фотографии: без сепии, светлая рамка, скруглённые углы */
-.plate { filter: none; overflow: hidden; border-radius: 12px;
-  border: 6px solid #fff; outline: 1px solid var(--color-divider);
-  box-shadow: var(--shadow-md); }
-
-/* заливной главный акцент вместо контурного */
-.btn-primary { background: var(--color-accent); color: #fff; }
-.btn-primary:hover { background: var(--color-accent-600); color: #fff; }
-.btn-primary:active { background: var(--color-accent-700); color: #fff; }
-@media (max-width: 640px) { .nav a:not(.btn) { display: none; } }
-
-.rule { height: 1px; border: 0; margin: 0; background: var(--color-divider); }
-
-.kicker {
-  display: block; font-size: 13px; line-height: var(--half);
-  letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--color-accent-700);
-  font-feature-settings: "tnum" 1;
-  margin: 0 0 calc(var(--leading) - var(--half));
-}
-
-/* — hero — */
-.hero { padding: calc(4 * var(--leading)) 0 calc(3 * var(--leading)); }
-.display {
-  font-family: var(--font-heading); font-weight: 400;
-  font-size: clamp(46px, 6.6vw, 92px);
-  line-height: clamp(49.5px, 7.13vw, 99.5px);
-  letter-spacing: -0.01em; margin: 0;
-  margin-left: -0.042em;
-  text-box: trim-both cap alphabetic;
-}
-.display .line { display: block; }
-.hero .sub { font-size: 17px; line-height: var(--leading); max-width: var(--measure);
-  margin: calc(1.75 * var(--leading) - 1cap) 0 0;
-  text-box: trim-both cap alphabetic; }
-.hero .row { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--leading); }
-
-/* — stat row: ровно один залитый золотой момент — рейтинг — */
-.stats { padding: calc(2 * var(--leading)) clamp(20px, 4vw, 56px);
-  margin: calc(1.25 * var(--leading)) 0;
-  background: var(--tint-soft); border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--color-divider) 60%, transparent); }
-.stats .grid { display: grid; grid-template-columns: repeat(4, auto); justify-content: space-between; gap: calc(1.5 * var(--leading)) var(--leading); }
-.stat-num { font-family: var(--font-heading); font-weight: 400;
-  font-size: clamp(36px, 3.6vw, 52px); line-height: calc(2 * var(--leading));
-  font-feature-settings: "tnum" 1; color: var(--color-text);
-  margin: 0; margin-left: -0.042em;
-  text-box: trim-both cap alphabetic; }
-.stat-num.gilt { color: var(--color-accent); }
-.stat-label { font-size: 13px; line-height: var(--half); letter-spacing: 0.08em; text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-text) 70%, transparent);
-  margin: var(--half) 0 0; }
-
-/* — о заведении — */
-.about { padding: calc(3 * var(--leading)) 0; }
-.about h2 { font-family: var(--font-heading); font-weight: 400;
-  font-size: 34px; line-height: calc(1.5 * var(--leading)); letter-spacing: -0.008em;
-  margin: 0; text-box: trim-both cap alphabetic; }
-.about p { font-size: 15.5px; line-height: var(--leading); max-width: var(--measure);
-  color: color-mix(in srgb, var(--color-text) 78%, transparent);
-  margin: calc(var(--leading) - 1cap) 0 0;
-  text-align: justify; hyphens: auto; hyphenate-limit-chars: 6 3 3;
-  text-box: trim-both cap alphabetic; }
-
-/* — ассортимент: три колонки, разделённые волосяными линиями — */
-.features { padding: calc(3 * var(--leading)) 0 calc(2.5 * var(--leading)); }
-.cols { position: relative; display: grid; grid-template-columns: repeat(3, 1fr);
-  --col-gap: calc(2 * var(--leading));
-  gap: calc(1.5 * var(--leading)) var(--col-gap);
-  margin-top: calc(var(--leading) - var(--half)); }
-.cols::before, .cols::after { content: ""; position: absolute; top: 0; bottom: 0; width: 1px;
-  background: var(--color-divider); }
-.cols::before { left: calc((100% - 2 * var(--col-gap)) / 3 + var(--col-gap) / 2 - 0.5px); }
-.cols::after { left: calc(2 * (100% - 2 * var(--col-gap)) / 3 + 1.5 * var(--col-gap) - 0.5px); }
-.col h2 { font-family: var(--font-heading); font-weight: 400;
-  font-size: 26px; line-height: var(--leading); letter-spacing: -0.005em;
-  margin: 0; text-box: trim-both cap alphabetic; }
-.col p { font-size: 15.5px; line-height: var(--leading); margin: calc(var(--leading) - 1cap) 0 0;
-  color: color-mix(in srgb, var(--color-text) 78%, transparent);
-  text-align: justify; hyphens: auto; hyphenate-limit-chars: 6 3 3;
-  text-box: trim-both cap alphabetic; }
-.col figure { margin: 0 0 var(--leading); }
-.col image-slot { width: 100%; aspect-ratio: 800 / 550; }
-
-/* — товары и цены — */
-.prices { padding: calc(3 * var(--leading)) 0; }
-.prices .grid3 { display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: calc(1.5 * var(--leading)) calc(2 * var(--leading));
-  margin-top: calc(var(--leading) - var(--half)); }
-.pricelist h3 { font-family: var(--font-heading); font-weight: 400;
-  font-size: 26px; line-height: var(--leading); letter-spacing: -0.005em;
-  margin: 0 0 var(--half); padding-bottom: var(--half);
-  border-bottom: 1px solid var(--color-divider); }
-.pricelist h3 .unit { font-family: var(--font-body); font-size: 13px;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-text) 70%, transparent); margin-left: var(--space-2); }
-.pricelist ul { list-style: none; margin: 0; padding: 0; }
-.price-row { display: flex; align-items: baseline; gap: 10px;
-  font-size: 15.5px; line-height: var(--leading); padding: calc(var(--half) / 2) 0; }
-.price-row .name { min-width: 0; }
-.price-row .name em { display: block; font-style: normal; font-size: 13px; line-height: 18px;
-  color: color-mix(in srgb, var(--color-text) 70%, transparent); }
-.price-row .dots { flex: 1; border-bottom: 1px dotted color-mix(in srgb, var(--color-text) 40%, transparent);
-  transform: translateY(-4px); min-width: 24px; }
-.price-row .cost { white-space: nowrap; font-feature-settings: "tnum" 1; }
-.price-row.hit .cost { color: var(--color-accent-700); }
-.price-row .tag { margin-left: var(--space-2); vertical-align: 2px; }
-.prices .foot { font-size: 13px; line-height: var(--leading);
-  color: color-mix(in srgb, var(--color-text) 70%, transparent);
-  margin: var(--leading) 0 0; }
-
-/* — галерея: пластины, как вклейки в книге — */
-.gallery { padding: calc(3 * var(--leading)) 0; }
-.gallery .grid { display: grid; grid-template-columns: 2fr 1fr 1fr;
-  gap: var(--leading); margin-top: calc(var(--leading) - var(--half)); }
-.gallery figure { margin: 0; }
-.gallery figure.wide { grid-row: span 2; }
-.gallery image-slot { width: 100%; height: 100%; aspect-ratio: 1 / 1; }
-.gallery figure.wide image-slot { aspect-ratio: auto; min-height: 100%; }
-
-/* — отзывы — */
-.reviews { padding: calc(3 * var(--leading)) 0; }
-.reviews .grid { display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: var(--leading); margin-top: calc(var(--leading) - var(--half)); }
-.review { border: 1px solid transparent; border-radius: 14px;
-  background: var(--tint-card); box-shadow: var(--shadow-sm);
-  padding: var(--leading); margin: 0; }
-.review blockquote { font-family: var(--font-heading); font-weight: 400;
-  font-size: 20px; line-height: var(--leading); letter-spacing: -0.005em;
-  margin: 0; text-box: trim-both cap alphabetic; }
-.review figcaption { font-size: 13px; line-height: 18px;
-  color: color-mix(in srgb, var(--color-text) 70%, transparent);
-  margin: var(--leading) 0 0; }
-.reviews .badge { font-size: 15.5px; line-height: var(--leading);
-  margin: var(--leading) 0 0;
-  color: color-mix(in srgb, var(--color-text) 78%, transparent); }
-.reviews .badge b { font-weight: 600; font-feature-settings: "tnum" 1; color: var(--color-text); }
-
-/* — контакты — */
-.contacts { padding: calc(3 * var(--leading)) 0; }
-.contacts .grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: var(--leading) clamp(24px, 5vw, 96px); align-items: start;
-  margin-top: calc(var(--leading) - var(--half)); }
-.contacts dl { margin: 0; font-size: 15.5px; line-height: var(--leading); }
-.contacts dt { font-size: 13px; line-height: var(--half); letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-text) 70%, transparent);
-  margin: var(--leading) 0 calc(var(--half) / 2); }
-.contacts dt:first-child { margin-top: 0; }
-.contacts dd { margin: 0; }
-.contacts .map { margin: 0; }
-.contacts .map iframe { display: block; width: 100%; height: 420px; border: 0; }
-
-/* — подвал — */
-footer { padding: calc(2 * var(--leading)) 0; font-size: 13px; line-height: var(--leading);
-  color: color-mix(in srgb, var(--color-text) 70%, transparent); }
-
-/* — responsive — */
-@media (max-width: 1108px) {
-  .cols { grid-template-columns: 1fr; }
-  .cols::before, .cols::after { content: none; }
-  .col { max-width: 62ch; }
-  .prices .grid3 { grid-template-columns: 1fr; max-width: 62ch; }
-  .reviews .grid { grid-template-columns: 1fr; max-width: 62ch; }
-}
-@media (max-width: 900px) {
-  .gallery .grid { grid-template-columns: 1fr 1fr; }
-  .gallery figure.wide { grid-column: 1 / -1; grid-row: auto; }
-  .gallery figure.wide image-slot { aspect-ratio: 3 / 2; min-height: 0; }
-  .contacts .grid { grid-template-columns: 1fr; }
-}
-@media (max-width: 720px) {
-  .hero { padding-top: calc(2.5 * var(--leading)); }
-  .stats .grid { grid-template-columns: repeat(2, 1fr); justify-content: start; }
-}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <meta name="theme-color" content="#283d32" />
+  <meta name="description" content="чайKOFF — чай на развес, кофе в зёрнах и сладости в Красноярске. Поможем выбрать вкус и собрать подарок. Ул. Шумяцкого, 2А." />
+  <title>чайKOFF — магазин чая, кофе и сладостей в Красноярске</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="site.js" defer></script>
 </head>
 <body>
-<nav class="nav">
-  <span class="nav-brand">
-    <!-- svg-версия вывески «чайKOFF»: пёрышки над «K», как на логотипе -->
-    <svg viewBox="0 0 200 48" role="img" aria-label="чайKOFF">
-      <g fill="#b68235">
-        <path d="M53,17 C51,8 57,2.5 66,1.5 C64,9 59,14.5 53,17 Z"/>
-        <path d="M56,17.5 C60,7 74,1 88,3 C81,11 67,17 56,17.5 Z"/>
-      </g>
-      <path d="M57,16.5 C67,11 77,7 86,4" fill="none" stroke="#fdfaf3" stroke-width="1.1" stroke-linecap="round"/>
-      <text x="0" y="40" font-family="Cormorant Garamond, serif" font-weight="600"
-            font-size="31" fill="#4a3418">чай<tspan font-size="36">KOFF</tspan></text>
-    </svg>
-  </span>
-  <a href="#about">О нас</a>
-  <a href="#assort">Ассортимент</a>
-  <a href="#prices">Цены</a>
-  <a href="#contacts">Контакты</a>
-  <a class="btn btn-primary" href="tel:+79535888002">+7 953 588-80-02</a>
-</nav>
-<!-- задний фон: сюда позже <video muted playsinline preload="auto" src="..."></video>
-     со scroll-driven эффектом наливания кофе -->
-<div class="bg-video" aria-hidden="true"></div>
-
-<!-- фоновая графика по мотивам фото из Images: полка с чайной жестянкой и
-     банками кофе с крышками-шариками, банка у левого края, чашка с паром -->
-<div class="bg-decor" aria-hidden="true">
-  <svg class="decor-shelf" viewBox="0 0 420 300" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <defs>
-      <g id="a-bean">
-        <ellipse rx="8" ry="5.2"/>
-        <path d="M-7,0.6 C-2.5,-3.4 2.5,4.2 7,-0.6"/>
-      </g>
-    </defs>
-    <!-- чайная жестянка -->
-    <rect x="24" y="92" width="96" height="20" rx="6"/>
-    <rect x="28" y="112" width="88" height="148" rx="7"/>
-    <path d="M52,140 l6,6 l-6,6 l-6,-6 z M72,140 l6,6 l-6,6 l-6,-6 z M92,140 l6,6 l-6,6 l-6,-6 z"/>
-    <rect x="48" y="164" width="48" height="40" rx="3"/>
-    <path d="M56,177 H88 M56,187 H82"/>
-    <!-- высокая банка с куполом -->
-    <path d="M132,120 Q132,96 164,96 Q196,96 196,120"/>
-    <path d="M128,120 H200"/>
-    <circle cx="164" cy="88" r="7"/>
-    <rect x="132" y="120" width="64" height="140" rx="10"/>
-    <use href="#a-bean" transform="translate(148,240) rotate(-20)"/>
-    <use href="#a-bean" transform="translate(166,244) rotate(35)"/>
-    <use href="#a-bean" transform="translate(182,238) rotate(5)"/>
-    <use href="#a-bean" transform="translate(152,218) rotate(50)"/>
-    <use href="#a-bean" transform="translate(174,220) rotate(-40)"/>
-    <use href="#a-bean" transform="translate(163,198) rotate(15)"/>
-    <!-- широкая банка с крышкой-шариком -->
-    <rect x="214" y="132" width="112" height="18" rx="9"/>
-    <circle cx="270" cy="113" r="9"/>
-    <path d="M270,122 V132"/>
-    <rect x="218" y="150" width="104" height="110" rx="16"/>
-    <rect x="248" y="166" width="44" height="26" rx="3"/>
-    <path d="M256,176 H284 M256,184 H278"/>
-    <use href="#a-bean" transform="translate(238,238) rotate(20)"/>
-    <use href="#a-bean" transform="translate(258,242) rotate(-35)"/>
-    <use href="#a-bean" transform="translate(278,238) rotate(45)"/>
-    <use href="#a-bean" transform="translate(298,242) rotate(-10)"/>
-    <use href="#a-bean" transform="translate(248,220) rotate(-50)"/>
-    <use href="#a-bean" transform="translate(270,222) rotate(30)"/>
-    <use href="#a-bean" transform="translate(292,218) rotate(-20)"/>
-    <!-- полка и рассыпанные зёрна -->
-    <path d="M8,262 H412"/>
-    <use href="#a-bean" transform="translate(352,252) rotate(-25)"/>
-    <use href="#a-bean" transform="translate(378,255) rotate(40)"/>
-    <use href="#a-bean" transform="translate(366,238) rotate(10)"/>
-  </svg>
-  <svg class="decor-jar" viewBox="0 0 240 260" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <defs>
-      <g id="b-bean">
-        <ellipse rx="9" ry="5.8"/>
-        <path d="M-8,0.7 C-3,-3.8 3,4.6 8,-0.7"/>
-      </g>
-    </defs>
-    <rect x="14" y="48" width="162" height="24" rx="12"/>
-    <circle cx="95" cy="28" r="10"/>
-    <path d="M95,38 V48"/>
-    <rect x="20" y="72" width="150" height="158" rx="20"/>
-    <rect x="60" y="96" width="70" height="32" rx="3"/>
-    <path d="M70,107 H120 M70,117 H110"/>
-    <use href="#b-bean" transform="translate(55,205) rotate(-20)"/>
-    <use href="#b-bean" transform="translate(80,210) rotate(35)"/>
-    <use href="#b-bean" transform="translate(105,205) rotate(-45)"/>
-    <use href="#b-bean" transform="translate(130,210) rotate(15)"/>
-    <use href="#b-bean" transform="translate(152,204) rotate(-30)"/>
-    <use href="#b-bean" transform="translate(67,183) rotate(50)"/>
-    <use href="#b-bean" transform="translate(93,186) rotate(-15)"/>
-    <use href="#b-bean" transform="translate(119,183) rotate(40)"/>
-    <use href="#b-bean" transform="translate(143,186) rotate(-50)"/>
-    <path d="M10,236 H190"/>
-    <use href="#b-bean" transform="translate(206,232) rotate(35)"/>
-    <use href="#b-bean" transform="translate(186,244) rotate(-15)"/>
-  </svg>
-  <svg class="decor-cup" viewBox="0 0 300 220" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <defs>
-      <g id="c-bean">
-        <ellipse rx="8" ry="5.2"/>
-        <path d="M-7,0.6 C-2.5,-3.4 2.5,4.2 7,-0.6"/>
-      </g>
-    </defs>
-    <path d="M132,96 C122,78 142,68 132,46"/>
-    <path d="M158,98 C148,80 170,70 160,46"/>
-    <ellipse cx="150" cy="120" rx="56" ry="11"/>
-    <path d="M94,120 C96,150 112,172 150,172 C188,172 204,150 206,120"/>
-    <path d="M206,126 C228,128 228,154 203,158"/>
-    <ellipse cx="150" cy="184" rx="90" ry="12"/>
-    <use href="#c-bean" transform="translate(48,204) rotate(-20)"/>
-    <use href="#c-bean" transform="translate(252,200) rotate(30)"/>
-    <use href="#c-bean" transform="translate(238,213) rotate(-40)"/>
-  </svg>
-</div>
-<div class="wrap">
-
-  <section class="hero">
-    <h1 class="display"><span class="line">Чай, кофе и сладости.</span> <span class="line">По-домашнему.</span></h1>
-    <p class="sub">«чайKOFF» — магазин чая и кофе в микрорайоне Северный: развесной чай, кофе в зёрнах и сладости к чаю. Красноярск, ул. Шумяцкого, 2А. Открыто ежедневно до 20:00.</p>
-    <div class="row">
-      <a class="btn btn-primary" href="#prices">Смотреть цены</a>
-      <a class="btn btn-ghost" href="#contacts">Как нас найти</a>
-    </div>
-  </section>
-
-  <section class="stats" aria-label="чайKOFF в цифрах">
-    <div class="grid">
-      <div><p class="stat-num gilt">100 г</p><p class="stat-label">Развес чая и кофе — от</p></div>
-      <div><p class="stat-num">3</p><p class="stat-label">Витрины: чай, кофе, сладости</p></div>
-      <div><p class="stat-num">20:00</p><p class="stat-label">Открыты ежедневно до</p></div>
-      <div><p class="stat-num">2А</p><p class="stat-label">Шумяцкого, мкр. Северный</p></div>
-    </div>
-  </section>
-
-  <!-- Описание
-      <section class="about" id="about">
-   <span class="kicker">О заведении</span>
-    <h2>Магазин, а не кофейня</h2>
-    <p>Мы небольшой домашний магазин чая и кофе в Северном: чай продаём на развес — от привычного чёрного с чабрецом до улунов, пуэров и травяных сборов, кофе — в зёрнах свежей обжарки, смелем при вас под турку, фильтр или эспрессо. Рядом витрина сладостей и подарочных наборов. Здесь помнят постоянных покупателей и помогут собрать подарок. Зайдите по дороге — уйдёте со свёртком чая и пакетом ароматного зерна.</p>
-  </section>
--->
-  <hr class="rule" />
-
-  <section class="features" id="assort">
-    <span class="kicker">Ассортимент</span>
-    <div class="cols">
-      <div class="col">
-        <figure class="plate"><image-slot id="assort-tea" shape="rect" role="img" aria-label="Чайная витрина" src="Images/tea.jpg" placeholder="Фото: чайная витрина, банки с чаем"></image-slot></figure>
-        <h2>Чай на развес</h2>
-        <p>Чёрный, зелёный, улуны, пуэры и травяные сборы — взвесим от 100 граммов, дадим понюхать и подскажем, как заваривать. Для подарка соберём набор в банке или крафтовом пакете.</p>
+  <a class="skip-link" href="#main">Перейти к содержимому</a>
+  <div class="topline"><span>Маленький магазин для больших чаепитий</span><span>Красноярск · мкр. Северный</span></div>
+  <header class="site-header">
+    <nav class="nav wrap" aria-label="Основная навигация">
+      <a class="brand" href="#" aria-label="чайKOFF — на главную">
+        <svg class="brand-leaves" viewBox="0 0 40 27" aria-hidden="true"><path d="M7 25C2 13 10 3 23 2c0 12-7 20-16 23Z"/><path d="M12 25C15 12 27 7 39 10c-5 11-16 17-27 15Z"/></svg>
+        <span>чай<span class="brand-caps">KOFF</span></span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links"><span class="menu-icon" aria-hidden="true"></span><span class="menu-label">Меню</span></button>
+      <div class="nav-links" id="nav-links">
+        <a href="#assort">Ассортимент</a><a href="#about">О магазине</a><a href="#prices">Цены</a><a href="#contacts">Контакты</a>
       </div>
-      <div class="col">
-        <figure class="plate"><image-slot id="assort-coffee" shape="rect" role="img" aria-label="Кофе в зёрнах на развес" src="Images/coffee.jpg" placeholder="Фото: банки с кофейным зерном"></image-slot></figure>
-        <h2>Кофе в зёрнах</h2>
-        <p>Арабика, купажи и ароматизированное зерно. Взвесим от 100 граммов и смелем под вашу турку, фильтр или эспрессо.</p>
+      <a class="nav-phone" href="tel:+79535888002"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 3 3 5-2 2c1 3 3 5 6 6l2-2 5 3c-1 4-3 5-6 4C9 19 5 15 3 9 2 6 3 4 7 3Z"/></svg><span>+7 953 588-80-02</span></a>
+    </nav>
+  </header>
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <img class="hero-photo" src="Images/tea.jpg" alt="Полки чайKOFF с коллекцией развесного чая в расписных банках" width="1280" height="958" fetchpriority="high" />
+      <div class="hero-shade"></div>
+      <div class="hero-content wrap">
+        <p class="eyebrow light"><span></span>Чайная лавка в Северном</p>
+        <h1 id="hero-title">Чай, кофе<br />и сладости<span class="hero-italic">по-домашнему.</span></h1>
+        <p class="hero-description">Любимый чай, ароматное зерно и что-нибудь<br class="desktop-break" /> сладкое. Выбирайте не спеша — мы поможем.</p>
+        <div class="hero-actions"><a class="button button-cream" href="#assort">Заглянуть на полки <span aria-hidden="true">↗</span></a><a class="hero-link" href="#contacts">Как нас найти <span aria-hidden="true">↗</span></a></div>
+        <div class="hero-address"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>Шумяцкого, 2А <span>·</span> Ежедневно до 20:00</div>
       </div>
-      <div class="col">
-        <figure class="plate"><image-slot id="assort-sweets" shape="rect" role="img" aria-label="Витрина со сладостями и подарочными наборами" src="Images/Candy.jpg" placeholder="Фото: витрина со сладостями"></image-slot></figure>
-        <h2>Сладости</h2>
-        <p>Конфеты, пастила, восточные сладости и печенье к чаю. Что-то к вечернему чаепитию или в дополнение к подарочному набору — витрина обновляется.</p>
+      <div class="hero-seal" aria-hidden="true"><span>Выбираем</span><strong>с душой</strong><span>к вашему столу</span></div>
+      <span class="hero-caption" aria-hidden="true">На наших полках — ваш следующий любимый вкус</span>
+    </section>
+
+    <div class="benefits wrap" aria-label="О магазине">
+      <div><span class="benefit-symbol" aria-hidden="true">◒</span><p><strong>От 100 граммов</strong><span>Чай и кофе на развес</span></p></div>
+      <div><svg class="benefit-symbol" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 6h14l-2 12H11L9 6Zm2 12h10v9H11v-9ZM7 22h18M13 2h6M16 27v3"/></svg><p><strong>Помол под ваш способ</strong><span>Турка, фильтр или эспрессо</span></p></div>
+      <div><svg class="benefit-symbol" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 14h22v15H5V14ZM3 9h26v5H3V9Zm13 0v20M16 9C4 10 6-3 13 4l3 5Zm0 0C28 10 26-3 19 4l-3 5Z"/></svg><p><strong>Подарки с теплом</strong><span>Соберём набор для близких</span></p></div>
+    </div>
+
+    <section class="assort section wrap" id="assort" aria-labelledby="assort-title">
+      <div class="section-heading"><div><p class="eyebrow">01 / Наш ассортимент</p><h2 id="assort-title">Для ваших тёплых ритуалов</h2></div><p class="heading-note">От первой утренней чашки<br />до долгих вечерних разговоров.</p></div>
+      <div class="assort-grid">
+        <article class="product-category">
+          <a class="category-photo" href="#tea" aria-label="Узнать о чае на развес"><img src="Images/tea.jpg" alt="Расписные банки с чёрным, зелёным и травяным чаем" width="1280" height="958" loading="lazy" /><span class="photo-tag">На развес · от 100 г</span><span class="photo-arrow" aria-hidden="true">↗</span></a>
+          <div class="category-title"><h3>Чай на развес</h3><span>01</span></div><p>Чёрный и зелёный, улуны и пуэры, душистые травяные сборы. Найдём вкус под ваше настроение.</p><a class="text-link" href="#tea">Выбрать свой чай <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="product-category">
+          <a class="category-photo" href="#coffee" aria-label="Узнать о кофе в зёрнах"><img src="Images/coffee.jpg" alt="Стеклянные банки с кофейным зерном в магазине" width="1280" height="958" loading="lazy" /><span class="photo-tag">Смелем при вас</span><span class="photo-arrow" aria-hidden="true">↗</span></a>
+          <div class="category-title"><h3>Кофе в зёрнах</h3><span>02</span></div><p>Арабика, купажи и ароматизированное зерно. Для бодрого утра и маленькой паузы среди дня.</p><a class="text-link" href="#coffee">Найти свой кофе <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="product-category">
+          <a class="category-photo" href="#sweets" aria-label="Узнать о сладостях к чаю"><img src="Images/Candy.jpg" alt="Витрина чайKOFF со сладостями к чаепитию" width="1280" height="958" loading="lazy" /><span class="photo-tag">К чаю и в подарок</span><span class="photo-arrow" aria-hidden="true">↗</span></a>
+          <div class="category-title"><h3>Что-нибудь сладкое</h3><span>03</span></div><p>Конфеты, пастила, печенье и восточные сладости. Приятное дополнение к любимой чашке.</p><a class="text-link" href="#sweets">Заглянуть за сладким <span aria-hidden="true">↗</span></a>
+        </article>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <hr class="rule" />
-
-  <section class="prices" id="prices">
-    <span class="kicker">Товары и цены</span>
-    <div class="grid3">
-      <div class="pricelist">
-        <h3>Чай <span class="unit">за 100 г</span></h3>
-        <ul>
-          <li class="price-row hit"><span class="name">Название чая<span class="tag tag-accent">хит</span></span><span class="dots"></span><span class="cost">000 ₽</span></li>
-          <li class="price-row"><span class="name">Название чая</span><span class="dots"></span><span class="cost">000 ₽</span></li>
-          <li class="price-row"><span class="name">Название чая<em>Сорт или короткое описание</em></span><span class="dots"></span><span class="cost">000 ₽</span></li>
-          <li class="price-row"><span class="name">Название чая</span><span class="dots"></span><span class="cost">000 ₽</span></li>
-        </ul>
+    <section class="about" id="about" aria-labelledby="about-title">
+      <div class="about-grid wrap">
+        <div class="about-photo"><img src="Images/coffee.jpg" alt="Кофейная полка нашего магазина в Северном" width="1280" height="958" loading="lazy" /><span>Знакомые полки. Новые любимые вкусы.</span></div>
+        <div class="about-content"><p class="eyebrow light">02 / Давайте знакомиться</p><h2 id="about-title">Маленькая лавка.<br /><em>Большая любовь</em><br />к чаепитию.</h2><p>Мы — «чайKOFF», ваш соседский магазин в Северном. Здесь можно открыть банку, вдохнуть аромат и выбрать именно тот чай, за которым захочется вернуться.</p><p>Подскажем, как заварить новый сорт, смелем кофе под вашу кофеварку и поможем собрать подарок. Просто загляните по дороге домой.</p><a class="text-link light-link" href="#contacts">Будем рады знакомству <span aria-hidden="true">↗</span></a></div>
       </div>
-      <div class="pricelist">
-        <h3>Кофе <span class="unit">за 100 г</span></h3>
-        <ul>
-          <li class="price-row"><span class="name">Название зерна</span><span class="dots"></span><span class="cost">000 ₽</span></li>
-          <li class="price-row hit"><span class="name">Название зерна<span class="tag tag-accent">хит</span></span><span class="dots"></span><span class="cost">000 ₽</span></li>
-          <li class="price-row"><span class="name">Название зерна<em>Страна происхождения, обжарка</em></span><span class="dots"></span><span class="cost">000 ₽</span></li>
-          <li class="price-row"><span class="name">Название зерна</span><span class="dots"></span><span class="cost">000 ₽</span></li>
-        </ul>
+    </section>
+
+    <section class="prices section wrap" id="prices" aria-labelledby="prices-title">
+      <div class="section-heading"><div><p class="eyebrow">03 / Что на полках</p><h2 id="prices-title">Выбирайте по вкусу</h2></div><p class="heading-note">Наличие и цены подскажем<br /><a href="tel:+79535888002">по телефону</a> или в магазине.</p></div>
+      <div class="selection-grid">
+        <article id="tea" class="selection"><div class="selection-heading"><h3>Чай</h3><span>от 100 г</span></div><ul><li>Чёрный и зелёный</li><li>Улуны и пуэры</li><li>Травяные сборы</li><li>Чай в подарочной упаковке</li></ul><a class="text-link" href="https://wa.me/79535888002?text=Здравствуйте!%20Подскажите,%20какой%20чай%20есть%20в%20наличии%20и%20по%20какой%20цене?" rel="noopener">Узнать наличие и цены <span aria-hidden="true">↗</span></a></article>
+        <article id="coffee" class="selection"><div class="selection-heading"><h3>Кофе</h3><span>от 100 г</span></div><ul><li>Арабика</li><li>Кофейные купажи</li><li>Ароматизированное зерно</li><li>Помол под ваш способ</li></ul><a class="text-link" href="https://wa.me/79535888002?text=Здравствуйте!%20Подскажите,%20какой%20кофе%20есть%20в%20наличии%20и%20по%20какой%20цене?" rel="noopener">Узнать наличие и цены <span aria-hidden="true">↗</span></a></article>
+        <article id="sweets" class="selection"><div class="selection-heading"><h3>Сладости</h3><span>к вашей чашке</span></div><ul><li>Конфеты и шоколад</li><li>Пастила</li><li>Восточные сладости</li><li>Печенье к чаю</li></ul><a class="text-link" href="https://wa.me/79535888002?text=Здравствуйте!%20Подскажите,%20какие%20сладости%20есть%20в%20наличии%20и%20по%20какой%20цене?" rel="noopener">Узнать наличие и цены <span aria-hidden="true">↗</span></a></article>
       </div>
-      <div class="pricelist">
-        <h3>Сладости</h3>
-        <ul>
-          <li class="price-row"><span class="name">Название сладости<em>за 100 г</em></span><span class="dots"></span><span class="cost">000 ₽</span></li>
-          <li class="price-row"><span class="name">Название сладости<em>за 100 г</em></span><span class="dots"></span><span class="cost">000 ₽</span></li>
-          <li class="price-row"><span class="name">Название сладости<em>за штуку</em></span><span class="dots"></span><span class="cost">000 ₽</span></li>
-          <li class="price-row"><span class="name">Название сладости<em>за 100 г</em></span><span class="dots"></span><span class="cost">000 ₽</span></li>
-        </ul>
-      </div>
-    </div>
-    <p class="foot">Списки шаблонные: впишите свои позиции и актуальные цены вместо заглушек «000 ₽».</p>
-  </section>
+      <div class="gift-note"><span aria-hidden="true">✳</span><p><strong>Хочется порадовать близких?</strong> Соберём чай, кофе и сладости в один подарок.</p><a class="text-link" href="https://wa.me/79535888002?text=Здравствуйте!%20Хочу%20собрать%20подарочный%20набор." rel="noopener">Обсудить подарок <span aria-hidden="true">↗</span></a></div>
+    </section>
 
-  <hr class="rule" />
-
-  <section class="gallery" id="gallery">
-    <span class="kicker">Галерея</span>
-    <div class="grid">
-      <figure class="plate wide"><image-slot id="gal-1" shape="rect" role="img" aria-label="Интерьер лавки" src="Images/tea.jpg" placeholder="Фото 1: интерьер или вход, широкий кадр"></image-slot></figure>
-      <figure class="plate"><image-slot id="gal-2" shape="rect" role="img" aria-label="Чайные банки" placeholder="Фото 2: чайные банки"></image-slot></figure>
-      <figure class="plate"><image-slot id="gal-3" shape="rect" role="img" aria-label="Кофе" src="Images/coffee.jpg" placeholder="Фото 3: кофе"></image-slot></figure>
-      <figure class="plate"><image-slot id="gal-4" shape="rect" role="img" aria-label="Сладости" placeholder="Фото 4: сладости"></image-slot></figure>
-      <figure class="plate"><image-slot id="gal-5" shape="rect" role="img" aria-label="Подарочный набор" placeholder="Фото 5: подарочный набор"></image-slot></figure>
-    </div>
-  </section>
-
-  <hr class="rule" />
-
-  <section class="reviews" id="reviews">
-    <span class="kicker">Отзывы</span>
-    <div class="grid">
-      <figure class="review">
-        <blockquote>«Место для отзыва покупателя — скопируйте сюда реальный текст».</blockquote>
-        <figcaption>Имя покупателя · Яндекс Карты</figcaption>
-      </figure>
-      <figure class="review">
-        <blockquote>«Место для отзыва покупателя — скопируйте сюда реальный текст».</blockquote>
-        <figcaption>Имя покупателя · 2ГИС</figcaption>
-      </figure>
-      <figure class="review">
-        <blockquote>«Место для отзыва покупателя — скопируйте сюда реальный текст».</blockquote>
-        <figcaption>Имя покупателя · ВКонтакте</figcaption>
-      </figure>
-    </div>
-    <p class="badge">Реальные отзывы о магазине смотрите на Яндекс Картах и в 2ГИС.</p>
-  </section>
-
-  <hr class="rule" />
-
-  <section class="contacts" id="contacts">
-    <span class="kicker">Контакты</span>
-    <div class="grid">
-      <dl>
-        <dt>Адрес</dt>
-        <dd>Красноярск, мкр. Северный, ул. Шумяцкого, 2А</dd>
-        <dt>Режим работы</dt>
-        <dd>Ежедневно до 20:00 — уточните точный график в магазине</dd>
-        <dt>Телефон</dt>
-        <dd><a href="tel:+79535888002">+7 953 588-80-02</a></dd>
-        <dt>Мессенджеры и соцсети</dt>
-        <dd><a href="https://wa.me/79535888002" rel="noopener">WhatsApp</a> · <a href="https://vk.com/club211377670" rel="noopener">ВКонтакте</a></dd>
-      </dl>
-      <figure class="map plate">
-        <iframe src="https://yandex.ru/map-widget/v1/?ll=92.938163%2C56.065765&amp;z=17&amp;pt=92.938163,56.065765,pm2orgm" title="чайKOFF на карте" loading="lazy" allowfullscreen></iframe>
-      </figure>
-    </div>
-  </section>
-
-  <hr class="rule" />
-
-  <footer>«чайKOFF» · Красноярск, ул. Шумяцкого, 2А · © 2026</footer>
-</div>
-<script src="image-slot.js"></script>
+    <section class="contacts section" id="contacts" aria-labelledby="contacts-title">
+      <div class="wrap"><p class="eyebrow">04 / Заходите в гости</p><div class="contacts-grid"><div class="contact-info"><h2 id="contacts-title">Хороший чай<br /><em>ближе, чем кажется.</em></h2><address>Красноярск, мкр. Северный<br /><strong>ул. Шумяцкого, 2А</strong></address><p class="hours"><span class="status-dot" aria-hidden="true"></span>Ежедневно до 20:00</p><a class="contact-phone" href="tel:+79535888002">+7 953 588-80-02</a><div class="social-links"><a href="https://wa.me/79535888002" rel="noopener">WhatsApp ↗</a><a href="https://vk.com/club211377670" rel="noopener">ВКонтакте ↗</a></div><a class="button button-green" href="https://yandex.ru/maps/?rtext=~56.065765,92.938163&amp;rtt=auto" target="_blank" rel="noopener">Построить маршрут <span aria-hidden="true">↗</span></a></div><div class="map"><iframe src="https://yandex.ru/map-widget/v1/?ll=92.938163%2C56.065765&amp;z=17&amp;pt=92.938163,56.065765,pm2orgm" title="чайKOFF: Красноярск, ул. Шумяцкого, 2А" loading="lazy" allowfullscreen></iframe><a class="map-caption" href="https://yandex.ru/maps/?text=чайKOFF%20Красноярск%20Шумяцкого%202А" target="_blank" rel="noopener"><span>Наш магазин на Яндекс Картах</span><span aria-hidden="true">↗</span></a></div></div></div>
+    </section>
+  </main>
+  <footer class="footer wrap"><a class="footer-brand" href="#">чайKOFF</a><span>Чай, кофе и маленькие радости.</span><span>Красноярск · © 2026</span><a href="#main" class="back-top">Наверх ↑</a></footer>
 </body>
 </html>
